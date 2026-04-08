@@ -14,13 +14,13 @@
 
 | Feature | Description |
 |---|---|
-| 🎯 **Multi-Platform Content** | Instagram, Facebook, TikTok, WhatsApp, Email — one click |
+| 🎯 **Multi-Platform Content** | Instagram, Facebook, TikTok, WhatsApp, Email  one click |
 | 🎨 **Tone Control** | Adventurous / Romantic / Professional / Family |
 | 🌍 **Language Toggle** | Auto-detect, English, Deutsch |
 | 📅 **7-Day Calendar** | Full content calendar from a single concept |
 | 🖼️ **AI Promo Images** | Flux model via Pollinations — cinematic quality |
 | 📜 **Generation History** | Last 50 campaigns stored server-side (JSON) |
-| ⚡ **Ultra-Fast** | Groq LPU inference — Llama 3.3 70B in < 1s |
+| ⚡ **Ultra-Fast** | Groq LPU inference. Llama 3.3 70B in < 1s |
 | 🏥 **Health Check** | `/health` endpoint for CI/CD and load balancers |
 
 ---
