@@ -697,6 +697,12 @@ async function handleGeneration() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ user_input: userInput, context: contextInput, tone, language: lang, platforms }),
     });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `Server error ${res.status}`);
+    }
+
     const data = await res.json();
 
     finishProgress();

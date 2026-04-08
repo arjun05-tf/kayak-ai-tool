@@ -14,7 +14,9 @@ RUN addgroup --system app && adduser --system --ingroup app app
 COPY --from=builder /install /usr/local
 COPY . .
 
-# Don't bake secrets into image; pass at runtime
+# Give the app user write access (needed for latest_promo.png and history.json)
+RUN chown -R app:app /app
+
 ENV GROQ_API_KEY=""
 ENV LOG_LEVEL="INFO"
 ENV PORT=8000

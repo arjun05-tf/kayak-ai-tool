@@ -120,7 +120,10 @@ async def generate_content(request: ContentRequest):
             "content": data,
             "has_image": image_path not in ("image_error", "timeout", "connection_failed"),
         }
-        _push_history(entry)
+        try:
+            _push_history(entry)
+        except Exception as he:
+            logger.warning(f"History write failed (non-fatal): {he}")
         return {"status": "complete", "id": entry["id"], "content": data, "image_url": "/latest_promo.png"}
     except json.JSONDecodeError:
         raise HTTPException(500, "AI returned malformed data — please retry.")
