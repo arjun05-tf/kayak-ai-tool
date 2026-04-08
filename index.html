@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KayakFlow AI | Marketing Automation Platform</title>
+  <meta name="description" content="AI-powered marketing automation for Berlin Kayak Tours. Generate multi-platform content, 7-day calendars, and promo images instantly." />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:           #05080f;
+      --bg-2:         #080c17;
+      --surface:      rgba(255,255,255,0.04);
+      --surface-h:    rgba(255,255,255,0.07);
+      --border:       rgba(255,255,255,0.07);
+      --border-glow:  rgba(99,102,241,0.45);
+      --text:         #e2e8f0;
+      --text-2:       #94a3b8;
+      --text-3:       #475569;
+      --accent:       #6366f1;
+      --accent-2:     #22d3ee;
+      --accent-grad:  linear-gradient(135deg,#6366f1,#22d3ee);
+      --danger:       #ef4444;
+      --success:      #22c55e;
+      --warn:         #f59e0b;
+      --radius:       14px;
+      --radius-sm:    8px;
+      --sidebar-w:    230px;
+      --transition:   0.2s ease;
+    }
+
+    html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); }
+
+    /* ── Layout ──────────────────────────────────────────────────────── */
+    .shell { display: flex; height: 100vh; overflow: hidden; }
+
+    /* ── Sidebar ─────────────────────────────────────────────────────── */
+    .sidebar {
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      background: var(--bg-2);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 24px 16px;
+      gap: 8px;
+    }
+    .sidebar-logo {
+      display: flex; align-items: center; gap: 10px;
+      padding: 0 8px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 8px;
+    }
+    .logo-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: var(--accent-grad);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-title { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; }
+    .logo-sub   { font-size: 10px; color: var(--text-3); margin-top: 1px; }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: var(--radius-sm);
+      border: none; background: transparent; cursor: pointer;
+      color: var(--text-2); font-size: 13.5px; font-weight: 500;
+      width: 100%; text-align: left; transition: var(--transition);
+    }
+    .nav-item:hover { background: var(--surface-h); color: var(--text); }
+    .nav-item.active {
+      background: rgba(99,102,241,0.15); color: #a5b4fc;
+      border: 1px solid rgba(99,102,241,0.25);
+    }
+    .nav-item i { width: 16px; height: 16px; flex-shrink: 0; }
+
+    .sidebar-footer {
+      margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border);
+    }
+    .status-badge {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 12px; border-radius: var(--radius-sm);
+      background: var(--surface); font-size: 11.5px; color: var(--text-2);
+    }
+    .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .dot.green { background: var(--success); box-shadow: 0 0 6px var(--success); }
+    .dot.red   { background: var(--danger);  box-shadow: 0 0 6px var(--danger); }
+    .version-tag { font-size: 10px; color: var(--text-3); margin-top: 8px; padding: 0 12px; }
+
+    /* ── Main ────────────────────────────────────────────────────────── */
+    .main { flex: 1; overflow-y: auto; padding: 28px 32px; }
+
+    /* ── Tabs ────────────────────────────────────────────────────────── */
+    .tab { display: none; }
+    .tab.active { display: block; animation: fadein .25s ease; }
+    @keyframes fadein { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+    /* ── Page Header ─────────────────────────────────────────────────── */
+    .page-header { margin-bottom: 24px; }
+    .page-header h1 {
+      font-size: 22px; font-weight: 700;
+      background: var(--accent-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .page-header p { font-size: 13px; color: var(--text-2); margin-top: 4px; }
+
+    /* ── Glass card ──────────────────────────────────────────────────── */
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px;
+    }
+    .card-title {
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--text-3); margin-bottom: 14px;
+      display: flex; align-items: center; gap: 7px;
+    }
+    .card-title i { width: 13px; height: 13px; }
+
+    /* ── Generator grid ──────────────────────────────────────────────── */
+    .gen-grid { display: grid; grid-template-columns: 360px 1fr; gap: 20px; align-items: start; }
+
+    /* ── Controls ────────────────────────────────────────────────────── */
+    .controls { display: flex; flex-direction: column; gap: 14px; }
+
+    textarea, input[type=text] {
+      width: 100%; resize: none; outline: none;
+      background: rgba(0,0,0,0.3); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 10px 12px;
+      color: var(--text); font-family: 'Inter', sans-serif; font-size: 13px;
+      transition: border-color var(--transition);
+    }
+    textarea:focus, input[type=text]:focus { border-color: var(--border-glow); }
+    textarea::placeholder { color: var(--text-3); }
+
+    /* Tone pills */
+    .tone-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .tone-btn {
+      padding: 9px 6px; border-radius: var(--radius-sm);
+      border: 1px solid var(--border); background: var(--surface);
+      color: var(--text-2); font-size: 12px; font-weight: 500; cursor: pointer;
+      transition: var(--transition); text-align: center;
+    }
+    .tone-btn:hover { background: var(--surface-h); color: var(--text); }
+    .tone-btn.active { border-color: var(--border-glow); background: rgba(99,102,241,0.12); color: #a5b4fc; }
+
+    /* Language toggle */
+    .lang-row { display: flex; gap: 8px; }
+    .lang-btn {
+      flex: 1; padding: 8px; border-radius: var(--radius-sm);
+      border: 1px solid var(--border); background: var(--surface);
+      color: var(--text-2); font-size: 12px; font-weight: 600; cursor: pointer;
+      transition: var(--transition);
+    }
+    .lang-btn.active { border-color: var(--border-glow); background: rgba(99,102,241,0.12); color: #a5b4fc; }
+
+    /* Platform checks */
+    .platform-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .plat-label {
+      display: flex; align-items: center; gap: 8px;
+      padding: 9px 10px; border-radius: var(--radius-sm);
+      border: 1px solid var(--border); background: var(--surface);
+      cursor: pointer; font-size: 12.5px; color: var(--text-2);
+      transition: var(--transition); user-select: none;
+    }
+    .plat-label:hover { background: var(--surface-h); }
+    .plat-label input { accent-color: var(--accent); }
+    .plat-label span.plat-icon { font-size: 15px; }
+
+    /* Generate button */
+    .btn-generate {
+      width: 100%; padding: 13px;
+      background: var(--accent-grad); border: none; border-radius: var(--radius-sm);
+      color: #fff; font-size: 14px; font-weight: 700; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: opacity var(--transition), transform var(--transition);
+      box-shadow: 0 4px 20px rgba(99,102,241,0.3);
+    }
+    .btn-generate:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
+    .btn-generate:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    /* Context area */
+    .context-area { display: none; }
+    .context-area.visible { display: block; }
+    .context-label { font-size: 11px; font-weight: 600; color: var(--warn); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 8px; }
+
+    /* ── Output panel ────────────────────────────────────────────────── */
+    .output-panel { min-height: 500px; }
+
+    /* Empty state */
+    .empty-state {
+      height: 500px; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 12px;
+      background: var(--surface); border: 2px dashed var(--border);
+      border-radius: var(--radius); color: var(--text-3);
+    }
+    .empty-state i { width: 48px; height: 48px; opacity: .3; }
+    .empty-state p { font-size: 13px; }
+
+    /* Progress stepper */
+    .loading-state {
+      display: none; flex-direction: column; align-items: center;
+      justify-content: center; gap: 28px; min-height: 400px;
+    }
+    .loading-state.visible { display: flex; }
+    .progress-wrap { width: 100%; max-width: 400px; }
+    .progress-track { height: 3px; background: var(--border); border-radius: 99px; overflow: hidden; margin-bottom: 24px; }
+    .progress-bar   { height: 100%; background: var(--accent-grad); border-radius: 99px; width: 0; transition: width .5s ease; }
+    .steps { display: flex; flex-direction: column; gap: 10px; }
+    .step  { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--text-3); transition: color .3s; }
+    .step.done   { color: var(--success); }
+    .step.active { color: var(--text); }
+    .step-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+    .step.active .step-dot { animation: pulse-dot 1.2s ease infinite; }
+    @keyframes pulse-dot { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.5);opacity:.5} }
+    .loading-label { font-size: 13px; color: var(--accent); font-weight: 500; animation: pulse-txt 1.5s ease infinite; }
+    @keyframes pulse-txt { 0%,100%{opacity:1} 50%{opacity:.5} }
+
+    /* Result state */
+    .result-state { display: none; flex-direction: column; gap: 16px; }
+    .result-state.visible { display: flex; }
+
+    /* Promo image */
+    .img-card { position: relative; border-radius: var(--radius); overflow: hidden; background: var(--bg-2); }
+    .img-card img { width: 100%; max-height: 380px; object-fit: cover; display: block; transition: transform .5s ease; }
+    .img-card:hover img { transform: scale(1.02); }
+    .img-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(5,8,15,.9) 0%, transparent 55%);
+    }
+    .img-meta {
+      position: absolute; bottom: 14px; left: 16px; right: 16px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .img-tag { font-size: 10px; font-family: monospace; background: rgba(0,0,0,.5); padding: 3px 8px; border-radius: 6px; }
+    .img-tour-title { font-size: 16px; font-weight: 700; text-shadow: 0 2px 8px rgba(0,0,0,.8); }
+    .btn-icon {
+      padding: 7px; border-radius: 8px; border: 1px solid rgba(255,255,255,.15);
+      background: rgba(255,255,255,.08); color: var(--text); cursor: pointer;
+      transition: var(--transition); display: flex; align-items: center; justify-content: center;
+    }
+    .btn-icon:hover { background: rgba(255,255,255,.18); }
+    .btn-icon i { width: 15px; height: 15px; }
+
+    /* Platform tabs */
+    .tab-bar  { display: flex; gap: 4px; border-bottom: 1px solid var(--border); padding-bottom: 1px; margin-bottom: 16px; flex-wrap: wrap; }
+    .tab-pill {
+      padding: 7px 14px; border-radius: 8px 8px 0 0; border: 1px solid transparent;
+      border-bottom: none; background: transparent; color: var(--text-3);
+      font-size: 12.5px; font-weight: 500; cursor: pointer; transition: var(--transition);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .tab-pill:hover { color: var(--text); }
+    .tab-pill.active { border-color: var(--border); border-bottom-color: var(--bg-2); background: var(--bg-2); color: var(--text); }
+    .tab-pill i { width: 13px; height: 13px; }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+    .plat-text { font-size: 13.5px; line-height: 1.75; white-space: pre-wrap; color: var(--text); }
+    .char-count { font-size: 11px; color: var(--text-3); margin-top: 8px; }
+    .copy-row { display: flex; justify-content: flex-end; margin-top: 10px; }
+    .btn-copy {
+      display: flex; align-items: center; gap: 6px; padding: 6px 14px;
+      border-radius: var(--radius-sm); border: 1px solid var(--border);
+      background: var(--surface); color: var(--text-2); font-size: 12px; cursor: pointer;
+      transition: var(--transition);
+    }
+    .btn-copy:hover { background: var(--surface-h); color: var(--text); }
+    .btn-copy i { width: 12px; height: 12px; }
+
+    /* Hashtags */
+    .hashtag-cloud { display: flex; flex-wrap: wrap; gap: 8px; }
+    .hashtag {
+      font-size: 12px; font-weight: 500; padding: 4px 10px; border-radius: 99px;
+      background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.25); color: #a5b4fc;
+      cursor: pointer; transition: var(--transition);
+    }
+    .hashtag:hover { background: rgba(99,102,241,0.25); }
+
+    /* ── Calendar ─────────────────────────────────────────────────────── */
+    .cal-controls { display: flex; gap: 12px; align-items: flex-end; margin-bottom: 24px; }
+    .cal-controls textarea { flex: 1; }
+    .btn-secondary {
+      padding: 10px 20px; border-radius: var(--radius-sm);
+      border: 1px solid var(--border-glow); background: rgba(99,102,241,0.1);
+      color: #a5b4fc; font-size: 13px; font-weight: 600; cursor: pointer;
+      transition: var(--transition); white-space: nowrap;
+    }
+    .btn-secondary:hover { background: rgba(99,102,241,0.2); }
+    .btn-secondary:disabled { opacity: .5; cursor: not-allowed; }
+
+    .cal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+    .day-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px;
+      transition: border-color var(--transition);
+    }
+    .day-card:hover { border-color: rgba(99,102,241,0.3); }
+    .day-num { font-size: 10px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: .1em; }
+    .day-theme {
+      display: inline-block; margin: 6px 0 10px;
+      font-size: 11px; padding: 2px 9px; border-radius: 99px;
+      background: rgba(34,211,238,0.1); border: 1px solid rgba(34,211,238,0.25); color: #67e8f9;
+    }
+    .day-caption { font-size: 12.5px; line-height: 1.65; color: var(--text-2); }
+    .day-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+    .day-tag { font-size: 10.5px; color: var(--text-3); }
+    .cal-loading { display: flex; align-items: center; justify-content: center; padding: 60px; color: var(--text-3); font-size: 13px; }
+    .cal-empty { text-align: center; padding: 60px 20px; color: var(--text-3); font-size: 13px; }
+    .cal-empty i { width: 40px; height: 40px; opacity: .2; margin: 0 auto 12px; display: block; }
+
+    /* ── History ─────────────────────────────────────────────────────── */
+    .history-empty { text-align: center; padding: 60px; color: var(--text-3); font-size: 13px; }
+    .history-empty i { width: 40px; height: 40px; opacity: .2; margin: 0 auto 12px; display: block; }
+    .hist-list { display: flex; flex-direction: column; gap: 12px; }
+    .hist-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px 18px;
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+    }
+    .hist-meta { flex: 1; min-width: 0; }
+    .hist-input { font-size: 13.5px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .hist-sub  { font-size: 11.5px; color: var(--text-3); margin-top: 4px; }
+    .hist-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+    .hist-chip {
+      font-size: 10.5px; padding: 2px 8px; border-radius: 99px;
+      border: 1px solid var(--border); background: var(--surface); color: var(--text-3);
+    }
+    .hist-actions { display: flex; gap: 8px; flex-shrink: 0; }
+    .btn-sm {
+      padding: 6px 12px; border-radius: var(--radius-sm);
+      border: 1px solid var(--border); background: var(--surface);
+      color: var(--text-2); font-size: 11.5px; cursor: pointer; transition: var(--transition);
+    }
+    .btn-sm:hover { background: var(--surface-h); color: var(--text); }
+    .btn-sm.danger:hover { border-color: var(--danger); color: var(--danger); }
+
+    /* ── Settings ─────────────────────────────────────────────────────── */
+    .settings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap: 16px; }
+    .setting-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 13px; }
+    .setting-key   { color: var(--text-2); }
+    .setting-value { color: var(--text); font-weight: 500; font-family: monospace; font-size: 12px; }
+    .pill-ok  { background: rgba(34,197,94,.15); color: #86efac; padding: 2px 10px; border-radius: 99px; font-size: 11px; }
+    .pill-err { background: rgba(239,68,68,.15);  color: #fca5a5; padding: 2px 10px; border-radius: 99px; font-size: 11px; }
+
+    /* ── Toasts ───────────────────────────────────────────────────────── */
+    #toast-root {
+      position: fixed; bottom: 24px; right: 24px; z-index: 1000;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .toast {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 16px; border-radius: var(--radius-sm);
+      background: #1e293b; border: 1px solid var(--border);
+      font-size: 13px; min-width: 240px; max-width: 340px;
+      animation: slide-in .25s ease; box-shadow: 0 8px 24px rgba(0,0,0,.4);
+    }
+    .toast i { width: 16px; height: 16px; flex-shrink: 0; }
+    .toast.success { border-color: rgba(34,197,94,.4); }
+    .toast.success i { color: var(--success); }
+    .toast.error   { border-color: rgba(239,68,68,.4); }
+    .toast.error   i { color: var(--danger); }
+    .toast.info    { border-color: rgba(99,102,241,.4); }
+    .toast.info    i { color: var(--accent); }
+    .toast.warn    { border-color: rgba(245,158,11,.4); }
+    .toast.warn    i { color: var(--warn); }
+    @keyframes slide-in { from { transform: translateX(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+    /* ── Responsive ───────────────────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .gen-grid { grid-template-columns: 1fr; }
+      .shell { flex-direction: column; }
+      .sidebar { width: 100%; flex-direction: row; flex-wrap: wrap; padding: 12px; border-right: none; border-bottom: 1px solid var(--border); }
+      .sidebar-logo { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+      .sidebar-footer { display: none; }
+      .main { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="shell">
+  <!-- ── Sidebar ─────────────────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h20M12 2l4 4-4 4M12 22l-4-4 4-4"/></svg></div>
+      <div>
+        <div class="logo-title">KayakFlow AI</div>
+        <div class="logo-sub">Marketing Automation</div>
+      </div>
+    </div>
+
+    <button class="nav-item active" data-tab="generator" onclick="switchTab('generator',this)">
+      <i data-lucide="zap"></i> Generator
+    </button>
+    <button class="nav-item" data-tab="calendar" onclick="switchTab('calendar',this)">
+      <i data-lucide="calendar-days"></i> Calendar
+    </button>
+    <button class="nav-item" data-tab="history" onclick="switchTab('history',this)" id="histNavBtn">
+      <i data-lucide="clock"></i> History
+    </button>
+    <button class="nav-item" data-tab="settings" onclick="switchTab('settings',this)">
+      <i data-lucide="settings-2"></i> Settings
+    </button>
+
+    <div class="sidebar-footer">
+      <div class="status-badge" id="statusBadge">
+        <div class="dot green" id="statusDot"></div>
+        <span id="statusTxt">API Connected</span>
+      </div>
+      <div class="version-tag">v3.0.0-PRO · Groq + Pollinations</div>
+    </div>
+  </aside>
+
+  <!-- ── Main ───────────────────────────────────────────────── -->
+  <main class="main">
+
+    <!-- ═══════════ GENERATOR TAB ═══════════ -->
+    <div class="tab active" id="tab-generator">
+      <div class="page-header">
+        <h1>Campaign Generator</h1>
+        <p>Turn a tour idea into multi-platform content in seconds.</p>
+      </div>
+
+      <div class="gen-grid">
+        <!-- Controls -->
+        <div class="controls">
+
+          <!-- Idea input -->
+          <div class="card">
+            <div class="card-title"><i data-lucide="pen-line"></i> Campaign Idea</div>
+            <textarea id="userInput" rows="4" placeholder="e.g. Sunset kayak tour for couples in Kreuzberg…"></textarea>
+            <div class="context-area" id="contextArea">
+              <div class="context-label" style="margin-top:12px;">⚠ Additional Info Needed</div>
+              <textarea id="contextInput" rows="3" placeholder="Answer the AI's questions here…"></textarea>
+            </div>
+          </div>
+
+          <!-- Tone -->
+          <div class="card">
+            <div class="card-title"><i data-lucide="sparkles"></i> Tone</div>
+            <div class="tone-grid">
+              <button class="tone-btn active" data-tone="adventurous" onclick="setTone(this)">🔥 Adventurous</button>
+              <button class="tone-btn" data-tone="romantic" onclick="setTone(this)">💗 Romantic</button>
+              <button class="tone-btn" data-tone="professional" onclick="setTone(this)">💼 Professional</button>
+              <button class="tone-btn" data-tone="family" onclick="setTone(this)">👨‍👩‍👧 Family</button>
+            </div>
+          </div>
+
+          <!-- Language -->
+          <div class="card">
+            <div class="card-title"><i data-lucide="globe"></i> Language</div>
+            <div class="lang-row">
+              <button class="lang-btn active" data-lang="auto" onclick="setLang(this)">🌐 Auto</button>
+              <button class="lang-btn" data-lang="en" onclick="setLang(this)">🇬🇧 English</button>
+              <button class="lang-btn" data-lang="de" onclick="setLang(this)">🇩🇪 Deutsch</button>
+            </div>
+          </div>
+
+          <!-- Platforms -->
+          <div class="card">
+            <div class="card-title"><i data-lucide="share-2"></i> Platforms</div>
+            <div class="platform-grid">
+              <label class="plat-label"><input type="checkbox" value="instagram" checked id="chk-instagram"><span class="plat-icon">📸</span> Instagram</label>
+              <label class="plat-label"><input type="checkbox" value="whatsapp"  checked id="chk-whatsapp" ><span class="plat-icon">💬</span> WhatsApp</label>
+              <label class="plat-label"><input type="checkbox" value="facebook"  id="chk-facebook" ><span class="plat-icon">👥</span> Facebook</label>
+              <label class="plat-label"><input type="checkbox" value="tiktok"    id="chk-tiktok"   ><span class="plat-icon">🎵</span> TikTok</label>
+              <label class="plat-label"><input type="checkbox" value="email"     id="chk-email"    ><span class="plat-icon">📧</span> Email</label>
+            </div>
+          </div>
+
+          <!-- Generate button -->
+          <button class="btn-generate" id="genBtn" onclick="handleGeneration()">
+            <i data-lucide="cpu"></i> Generate Campaign
+          </button>
+        </div>
+
+        <!-- Output -->
+        <div class="output-panel">
+          <!-- Empty state -->
+          <div class="empty-state" id="emptyState">
+            <i data-lucide="image-play"></i>
+            <p>Your generated content will appear here</p>
+          </div>
+
+          <!-- Loading -->
+          <div class="loading-state" id="loadingState">
+            <div class="progress-wrap">
+              <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
+              <div class="steps" id="stepsContainer">
+                <div class="step" id="step-0"><div class="step-dot"></div> Briefing the AI…</div>
+                <div class="step" id="step-1"><div class="step-dot"></div> Writing copy for all platforms…</div>
+                <div class="step" id="step-2"><div class="step-dot"></div> Crafting image prompt…</div>
+                <div class="step" id="step-3"><div class="step-dot"></div> Generating promo image (Flux)…</div>
+              </div>
+            </div>
+            <div class="loading-label" id="loadingLabel">Processing…</div>
+          </div>
+
+          <!-- Results -->
+          <div class="result-state" id="resultState">
+
+            <!-- Promo image -->
+            <div class="img-card card" style="padding:0;">
+              <img id="promoImg" src="" alt="AI Promo Image" />
+              <div class="img-overlay"></div>
+              <div class="img-meta">
+                <div>
+                  <div class="img-tour-title" id="tourTitle"></div>
+                  <div class="img-tag">FLUX · Pollinations AI</div>
+                </div>
+                <div style="display:flex;gap:8px;">
+                  <button class="btn-icon" onclick="regenerateImage()" title="Regenerate image"><i data-lucide="refresh-cw"></i></button>
+                  <a id="downloadBtn" href="#" download="kayak_promo.png" class="btn-icon" title="Download"><i data-lucide="download"></i></a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Platform tabs -->
+            <div class="card">
+              <div class="tab-bar" id="platformTabBar"></div>
+              <div id="platformTabContent"></div>
+            </div>
+
+            <!-- Hashtags -->
+            <div class="card">
+              <div class="card-title"><i data-lucide="hash"></i> Hashtags <span style="color:var(--text-3);font-weight:400;">(click to copy)</span></div>
+              <div class="hashtag-cloud" id="hashtagCloud"></div>
+            </div>
+
+          </div><!-- /resultState -->
+        </div><!-- /output-panel -->
+      </div><!-- /gen-grid -->
+    </div><!-- /tab-generator -->
+
+
+    <!-- ═══════════ CALENDAR TAB ═══════════ -->
+    <div class="tab" id="tab-calendar">
+      <div class="page-header">
+        <h1>7-Day Content Calendar</h1>
+        <p>Generate a full week of Instagram content from a single concept.</p>
+      </div>
+      <div class="cal-controls">
+        <textarea id="calInput" rows="2" placeholder="e.g. Family kayak adventure through Berlin's canals…"></textarea>
+        <button class="btn-secondary" id="calBtn" onclick="generateCalendar()">
+          <i data-lucide="wand-2"></i> Generate Week
+        </button>
+      </div>
+      <div id="calendarContainer">
+        <div class="cal-empty">
+          <i data-lucide="calendar-days"></i>
+          Enter a concept above and generate your 7-day calendar.
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ HISTORY TAB ═══════════ -->
+    <div class="tab" id="tab-history">
+      <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+          <h1>Generation History</h1>
+          <p>Your last 50 campaigns, stored server-side.</p>
+        </div>
+        <button class="btn-secondary" onclick="loadHistory()" style="margin-top:4px;">
+          <i data-lucide="refresh-cw"></i> Refresh
+        </button>
+      </div>
+      <div id="historyContainer"><div class="history-empty"><i data-lucide="clock"></i>No history yet.</div></div>
+    </div>
+
+    <!-- ═══════════ SETTINGS TAB ═══════════ -->
+    <div class="tab" id="tab-settings">
+      <div class="page-header">
+        <h1>Settings & Status</h1>
+        <p>System information and API configuration status.</p>
+      </div>
+      <div class="settings-grid">
+        <div class="card">
+          <div class="card-title"><i data-lucide="activity"></i> API Health</div>
+          <div id="healthInfo"><div style="color:var(--text-3);font-size:13px;">Loading…</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><i data-lucide="cpu"></i> Engine</div>
+          <div class="setting-row"><span class="setting-key">LLM</span><span class="setting-value">Groq · Llama 3.3 70B</span></div>
+          <div class="setting-row"><span class="setting-key">Image</span><span class="setting-value">Pollinations · Flux</span></div>
+          <div class="setting-row"><span class="setting-key">Version</span><span class="setting-value">3.0.0-PRO</span></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><i data-lucide="terminal"></i> Quick Start</div>
+          <div style="font-size:12px;color:var(--text-2);line-height:1.9;font-family:monospace;">
+            python main.py<br>
+            pytest tests/ -v<br>
+            docker-compose up<br>
+            git push origin main
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Toast container -->
+<div id="toast-root"></div>
+
+<script>
+// ── State ─────────────────────────────────────────────────────────────────
+let tone = 'adventurous';
+let lang = 'auto';
+let lastImagePrompt = '';
+
+// ── Init ──────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  lucide.createIcons();
+  checkHealth();
+});
+
+// ── Tab Navigation ────────────────────────────────────────────────────────
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  btn.classList.add('active');
+  if (name === 'history') loadHistory();
+  if (name === 'settings') loadHealth();
+}
+
+// ── Selectors ─────────────────────────────────────────────────────────────
+function setTone(btn) {
+  document.querySelectorAll('.tone-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  tone = btn.dataset.tone;
+}
+function setLang(btn) {
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  lang = btn.dataset.lang;
+}
+
+function getSelectedPlatforms() {
+  return [...document.querySelectorAll('.plat-label input:checked')].map(c => c.value);
+}
+
+// ── Progress stepper ──────────────────────────────────────────────────────
+const STEP_MSGS = [
+  'Briefing the AI…',
+  'Writing copy for all platforms…',
+  'Crafting image prompt…',
+  'Generating promo image (Flux)…',
+];
+
+let stepTimer = null;
+function startProgress() {
+  let step = 0;
+  setStep(step);
+  stepTimer = setInterval(() => {
+    if (step < 2) { step++; setStep(step); }
+  }, 1800);
+}
+function setStep(n) {
+  STEP_MSGS.forEach((_, i) => {
+    const el = document.getElementById('step-' + i);
+    el.className = 'step' + (i < n ? ' done' : i === n ? ' active' : '');
+  });
+  document.getElementById('progressBar').style.width = ((n / 3) * 100) + '%';
+  document.getElementById('loadingLabel').textContent = STEP_MSGS[n];
+}
+function finishProgress() {
+  clearInterval(stepTimer);
+  setStep(3);
+  document.getElementById('progressBar').style.width = '100%';
+}
+function resetProgress() {
+  clearInterval(stepTimer);
+  STEP_MSGS.forEach((_, i) => { document.getElementById('step-' + i).className = 'step'; });
+  document.getElementById('progressBar').style.width = '0';
+}
+
+// ── Generation ────────────────────────────────────────────────────────────
+async function handleGeneration() {
+  const userInput = document.getElementById('userInput').value.trim();
+  const contextInput = document.getElementById('contextInput').value.trim();
+  const platforms = getSelectedPlatforms();
+
+  if (!userInput) { toast('Please enter a campaign idea.', 'warn'); return; }
+  if (!platforms.length) { toast('Select at least one platform.', 'warn'); return; }
+
+  const genBtn = document.getElementById('genBtn');
+  genBtn.disabled = true;
+
+  setUIState('loading');
+  startProgress();
+
+  try {
+    const res = await fetch('/api/v1/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_input: userInput, context: contextInput, tone, language: lang, platforms }),
+    });
+    const data = await res.json();
+
+    finishProgress();
+    await new Promise(r => setTimeout(r, 600));
+
+    if (data.status === 'need_more_info') {
+      setUIState('empty');
+      document.getElementById('contextArea').classList.add('visible');
+      toast('The AI needs more details — see the yellow box.', 'warn');
+      return;
+    }
+
+    renderResults(data);
+    toast('Campaign generated!', 'success');
+
+  } catch (e) {
+    toast('Connection error — is the server running?', 'error');
+    setUIState('empty');
+  } finally {
+    genBtn.disabled = false;
+    resetProgress();
+    lucide.createIcons();
+  }
+}
+
+function setUIState(state) {
+  document.getElementById('emptyState').style.display   = state === 'empty'   ? 'flex'  : 'none';
+  document.getElementById('loadingState').className     = 'loading-state' + (state === 'loading' ? ' visible' : '');
+  document.getElementById('resultState').className      = 'result-state'  + (state === 'result'  ? ' visible' : '');
+}
+
+// ── Render results ────────────────────────────────────────────────────────
+function renderResults(data) {
+  setUIState('result');
+  const content = data.content || {};
+
+  // Tour title
+  document.getElementById('tourTitle').textContent = content.tour_title || '';
+
+  // Image
+  const img = document.getElementById('promoImg');
+  img.src = (data.image_url || '/latest_promo.png') + '?t=' + Date.now();
+  document.getElementById('downloadBtn').href = img.src;
+  lastImagePrompt = content.image_prompt || '';
+
+  // Platform tabs
+  const platforms = content.platforms || {};
+  // Fallback for old backend format
+  if (!Object.keys(platforms).length) {
+    if (content.caption)       platforms.instagram = content.caption;
+    if (content.whatsapp_text) platforms.whatsapp  = content.whatsapp_text;
+  }
+
+  const ICONS = { instagram:'camera', facebook:'users', tiktok:'music', whatsapp:'message-circle', email:'mail' };
+  const LABELS = { instagram:'Instagram', facebook:'Facebook', tiktok:'TikTok', whatsapp:'WhatsApp', email:'Email' };
+
+  const tabBar     = document.getElementById('platformTabBar');
+  const tabContent = document.getElementById('platformTabContent');
+  tabBar.innerHTML = '';
+  tabContent.innerHTML = '';
+
+  Object.entries(platforms).forEach(([plat, text], idx) => {
+    const pill = document.createElement('button');
+    pill.className = 'tab-pill' + (idx === 0 ? ' active' : '');
+    pill.id = 'pill-' + plat;
+    pill.innerHTML = `<i data-lucide="${ICONS[plat] || 'share-2'}"></i> ${LABELS[plat] || plat}`;
+    pill.onclick = () => switchPlatformTab(plat);
+    tabBar.appendChild(pill);
+
+    const pane = document.createElement('div');
+    pane.className = 'tab-pane' + (idx === 0 ? ' active' : '');
+    pane.id = 'pane-' + plat;
+    pane.innerHTML = `
+      <p class="plat-text" id="plat-text-${plat}">${escapeHtml(text)}</p>
+      <div class="char-count">${text.length} chars</div>
+      <div class="copy-row">
+        <button class="btn-copy" onclick="copyText('plat-text-${plat}')">
+          <i data-lucide="copy"></i> Copy
+        </button>
+      </div>`;
+    tabContent.appendChild(pane);
+  });
+
+  // Hashtags
+  const tags = content.hashtags || [];
+  document.getElementById('hashtagCloud').innerHTML = tags
+    .map(h => `<span class="hashtag" onclick="navigator.clipboard.writeText('#${h.replace(/^#/,'')}');toast('Copied!','success')">#${h.replace(/^#/,'')}</span>`)
+    .join('');
+
+  lucide.createIcons();
+}
+
+function switchPlatformTab(plat) {
+  document.querySelectorAll('.tab-pill').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.getElementById('pill-' + plat)?.classList.add('active');
+  document.getElementById('pane-' + plat)?.classList.add('active');
+}
+
+async function regenerateImage() {
+  if (!lastImagePrompt) { toast('Generate a campaign first.', 'warn'); return; }
+  toast('Regenerating image…', 'info');
+  try {
+    const res = await fetch('/api/v1/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_input: lastImagePrompt, tone, language: lang, platforms: ['instagram'] }),
+    });
+    const data = await res.json();
+    if (data.image_url) {
+      document.getElementById('promoImg').src = data.image_url + '?t=' + Date.now();
+      toast('Image refreshed!', 'success');
+    }
+  } catch { toast('Image regen failed.', 'error'); }
+}
+
+// ── Calendar ──────────────────────────────────────────────────────────────
+async function generateCalendar() {
+  const idea = document.getElementById('calInput').value.trim();
+  if (!idea) { toast('Enter a tour concept first.', 'warn'); return; }
+
+  const btn = document.getElementById('calBtn');
+  btn.disabled = true;
+  document.getElementById('calendarContainer').innerHTML = '<div class="cal-loading"><span>Generating 7-day calendar…</span></div>';
+
+  try {
+    const res = await fetch('/api/v1/generate/bulk', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_input: idea, tone, language: lang }),
+    });
+    const data = await res.json();
+    renderCalendar(data.calendar || []);
+    toast('7-day calendar ready!', 'success');
+  } catch (e) {
+    document.getElementById('calendarContainer').innerHTML = '<div class="cal-empty"><i data-lucide="alert-circle"></i>Failed to generate. Check server.</div>';
+    toast('Calendar generation failed.', 'error');
+  } finally {
+    btn.disabled = false;
+    lucide.createIcons();
+  }
+}
+
+function renderCalendar(days) {
+  if (!days.length) {
+    document.getElementById('calendarContainer').innerHTML = '<div class="cal-empty">No data returned.</div>';
+    return;
+  }
+  const html = days.map(d => `
+    <div class="day-card">
+      <div class="day-num">Day ${d.day}</div>
+      <span class="day-theme">${d.theme || ''}</span>
+      <p class="day-caption">${escapeHtml((d.caption || '').substring(0, 180))}…</p>
+      <div class="day-tags">${(d.hashtags||[]).slice(0,5).map(h => `<span class="day-tag">#${h}</span>`).join('')}</div>
+    </div>`).join('');
+  document.getElementById('calendarContainer').innerHTML = `<div class="cal-grid">${html}</div>`;
+}
+
+// ── History ───────────────────────────────────────────────────────────────
+async function loadHistory() {
+  try {
+    const res = await fetch('/api/v1/history');
+    const data = await res.json();
+    renderHistory(data.items || []);
+  } catch { document.getElementById('historyContainer').innerHTML = '<div class="history-empty"><i data-lucide="wifi-off"></i>Could not load history.</div>'; }
+  lucide.createIcons();
+}
+
+function renderHistory(items) {
+  if (!items.length) {
+    document.getElementById('historyContainer').innerHTML = '<div class="history-empty"><i data-lucide="clock"></i>No history yet — generate your first campaign!</div>';
+    lucide.createIcons(); return;
+  }
+  const html = items.map(h => {
+    const date = new Date(h.ts || h.timestamp || Date.now()).toLocaleString();
+    const chips = (h.platforms || []).map(p => `<span class="hist-chip">${p}</span>`).join('');
+    return `
+    <div class="hist-card" id="hcard-${h.id}">
+      <div class="hist-meta">
+        <div class="hist-input">${escapeHtml(h.user_input || '')}</div>
+        <div class="hist-sub">${date} · Tone: ${h.tone || '—'}</div>
+        <div class="hist-chips">${chips}</div>
+      </div>
+      <div class="hist-actions">
+        <button class="btn-sm" onclick="restoreFromHistory('${h.id}')">Restore</button>
+        <button class="btn-sm danger" onclick="deleteHistory('${h.id}')">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('historyContainer').innerHTML = `<div class="hist-list">${html}</div>`;
+  lucide.createIcons();
+}
+
+async function deleteHistory(id) {
+  try {
+    await fetch('/api/v1/history/' + id, { method: 'DELETE' });
+    document.getElementById('hcard-' + id)?.remove();
+    toast('Deleted.', 'success');
+  } catch { toast('Delete failed.', 'error'); }
+}
+
+async function restoreFromHistory(id) {
+  try {
+    const res = await fetch('/api/v1/history');
+    const data = await res.json();
+    const item = (data.items || []).find(x => x.id === id);
+    if (!item) { toast('Item not found.', 'warn'); return; }
+    document.getElementById('userInput').value = item.user_input || '';
+    switchTab('generator', document.querySelector('[data-tab="generator"]'));
+    toast('Campaign restored — click Generate!', 'info');
+  } catch { toast('Restore failed.', 'error'); }
+}
+
+// ── Health / Settings ─────────────────────────────────────────────────────
+async function checkHealth() {
+  try {
+    const res = await fetch('/health');
+    const d = await res.json();
+    const ok = d.status === 'ok' && d.groq;
+    document.getElementById('statusDot').className = 'dot ' + (ok ? 'green' : 'red');
+    document.getElementById('statusTxt').textContent = ok ? 'API Connected' : 'Groq key missing';
+  } catch {
+    document.getElementById('statusDot').className = 'dot red';
+    document.getElementById('statusTxt').textContent = 'Server offline';
+  }
+}
+
+async function loadHealth() {
+  try {
+    const res = await fetch('/health');
+    const d = await res.json();
+    document.getElementById('healthInfo').innerHTML = `
+      <div class="setting-row"><span class="setting-key">Status</span><span class="${d.status==='ok'?'pill-ok':'pill-err'}">${d.status}</span></div>
+      <div class="setting-row"><span class="setting-key">Groq API</span><span class="${d.groq?'pill-ok':'pill-err'}">${d.groq?'Connected':'Missing'}</span></div>
+      <div class="setting-row"><span class="setting-key">Version</span><span class="setting-value">${d.version}</span></div>
+      <div class="setting-row"><span class="setting-key">Server Time</span><span class="setting-value">${new Date(d.ts).toLocaleTimeString()}</span></div>`;
+  } catch {
+    document.getElementById('healthInfo').innerHTML = '<span class="pill-err">Offline</span>';
+  }
+}
+
+// ── Utilities ─────────────────────────────────────────────────────────────
+function copyText(id) {
+  const text = document.getElementById(id)?.innerText || '';
+  navigator.clipboard.writeText(text).then(() => toast('Copied to clipboard!', 'success'));
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function toast(msg, type = 'info') {
+  const ICONS = { success:'check-circle', error:'x-circle', warn:'alert-triangle', info:'info' };
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `<i data-lucide="${ICONS[type]||'info'}"></i> <span>${escapeHtml(msg)}</span>`;
+  document.getElementById('toast-root').appendChild(el);
+  lucide.createIcons({ nodes: [el] });
+  setTimeout(() => el.remove(), 3500);
+}
+</script>
+</body>
+</html>
